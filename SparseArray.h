@@ -16,31 +16,39 @@ public:
 
     class Index{
     private:
-        unsigned int *indexArray;
-        int counter;
+        unsigned *indexArray;
+        unsigned counter;
     public:
         Index(){
-            indexArray = (unsigned *)calloc(D, sizeof(unsigned));
             counter = 0;
+            indexArray = new unsigned[D];
+            for (unsigned i = 0; i < D; i++) {
+                indexArray[i] *= 0;
+            }
         }
 
         Index(const Index& ind){
             counter = ind.counter;
-            unsigned *arr = (unsigned *)calloc(D, sizeof(D));
-            for(int i = 0; i<D; i++){
-                arr[i] = ind.indexArray[i];
+            unsigned *new_array = new unsigned[D];
+            for(unsigned i = 0; i<D; i++){
+                new_array[i] = ind.indexArray[i];
             }
-            delete indexArray;
-            indexArray = arr;
+            indexArray = new_array;
         }
         ~Index(){
-            indexArray;
+            delete[] indexArray;
         }
 
-        unsigned& operator[](int id){
+        unsigned& operator[](unsigned id){
+            if(id < 0 && id >=D){
+                throw runtime_error("Invalid index");
+            }
             return indexArray[id];
         }
-        unsigned operator[](int id) const{
+        unsigned operator[](unsigned id) const{
+            if(id < 0 && id >=D){
+                throw runtime_error("Invalid index");
+            }
             return indexArray[id];
         }
 
@@ -53,7 +61,7 @@ public:
             return *this;
         }
 
-        Index& operator=(int a){
+        Index& operator=(unsigned a){
             counter = 0;
             for(unsigned i = 0; i<D; i++){
                 indexArray[i] = 0;
@@ -63,16 +71,16 @@ public:
         }
 
         Index& operator=(const Index& ind){
-            if(this == &ind)
+            if(this == &ind) {
                 return *this;
-
-            unsigned *arr = (unsigned *)calloc(D, sizeof(D));
-            for(int i = 0; i<D; i++){
-                arr[i] = indexArray[i];
             }
 
-            delete indexArray;
-            indexArray = arr;
+            unsigned *new_array = new unsigned[D];
+            for(int i = 0; i<D; i++){
+                new_array[i] = indexArray[i];
+            }
+
+            indexArray = new_array;
             return *this;
         }
 
