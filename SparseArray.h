@@ -40,13 +40,13 @@ public:
         }
 
         unsigned& operator[](unsigned id){
-            if(id < 0 && id >=D){
+            if(id < 0){
                 throw runtime_error("Invalid index");
             }
             return indexArray[id];
         }
         unsigned operator[](unsigned id) const{
-            if(id < 0 && id >=D){
+            if(id < 0){
                 throw runtime_error("Invalid index");
             }
             return indexArray[id];
@@ -117,14 +117,22 @@ public:
     };
     V& operator[](const Index& ind){
         if(!mapa.count(ind)) {
-            V *v1 = new V();
-            mapa[ind] = *v1;
+//            V *v1 = new V();
+//            mapa[ind] = *v1;
             return mapa[ind];
         } else{
             return mapa[ind];
         }
     }
-
+    V operator[](const Index& ind) const{
+        if(!mapa.count(ind)) {
+//            V *v1 = new V();
+//            mapa[ind] = *v1;
+            return mapa[ind];
+        } else{
+            return mapa[ind];
+        }
+    }
 
 
     SparseArray(){}
