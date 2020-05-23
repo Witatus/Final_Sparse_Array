@@ -40,13 +40,13 @@ public:
         }
 
         unsigned& operator[](unsigned id){
-            if(id < 0){
+            if(id < 0 || id>D-1){
                 throw runtime_error("Invalid index");
             }
             return indexArray[id];
         }
         unsigned operator[](unsigned id) const{
-            if(id < 0){
+            if(id < 0 || id>D-1){
                 throw runtime_error("Invalid index");
             }
             return indexArray[id];
@@ -54,10 +54,10 @@ public:
 
         Index& operator,(unsigned a){
             counter++;
-            indexArray[this->counter] = a;
-            if(counter+1 > D){
+            if(counter >= D){
                 throw runtime_error("Index overflow");
             }
+            indexArray[counter] = a;
             return *this;
         }
 
@@ -68,6 +68,16 @@ public:
             }
             indexArray[0] = a;
             return *this;
+        }
+
+
+        bool operator==(const Index& ind){
+            for(unsigned i = 0; i<D; i++){
+                if(indexArray[i] != ind.indexArray[i]){
+                    return false;
+                }
+            }
+            return true;
         }
 
         Index& operator=(const Index& ind){
@@ -83,18 +93,8 @@ public:
             indexArray = new_array;
             return *this;
         }
-
-        bool operator==(const Index& ind){
-            for(int i = 0; i<D; i++){
-                if(indexArray[i] != ind.indexArray[i]){
-                    return false;
-                }
-            }
-            return true;
-        }
-
         friend bool operator<(const Index& ind1, const Index& ind2){
-            for(int i = 0; i<D; i++){
+            for(unsigned i = 0; i<D; i++){
                 if(ind1[i] < ind2.indexArray[i]){
                     return true;
                 }
@@ -115,32 +115,204 @@ public:
             return o;
         }
     };
-    V& operator[](const Index& ind){
-        if(!mapa.count(ind)) {
-//            V *v1 = new V();
-//            mapa[ind] = *v1;
-            return mapa[ind];
-        } else{
-            return mapa[ind];
+    class reference {
+    public:
+        Index ind;
+        map<const Index, V>* refMap;
+
+        reference(){}
+        reference(const Index& ind,map<const Index, V>& refMap): ind(ind), refMap(&refMap){}
+        reference(const reference& ref){
+            ind = ref.ind;
+            refMap = ref.refMap;
         }
-    }
-    V operator[](const Index& ind) const{
-        if(!mapa.count(ind)) {
-//            V *v1 = new V();
-//            mapa[ind] = *v1;
-            return mapa[ind];
-        } else{
-            return mapa[ind];
+        reference& operator =(const reference& ref) {
+            ind = ref.ind;
+            refMap = ref.refMap;
         }
+
+
+        reference& operator =(const V& v){
+        if(v != V()) {
+            (*refMap)[ind] = v;
+        }
+        if(v == V() && (*refMap).count(ind)){
+            (*refMap).erase(ind);
+        }
+
+           return *this;
+        }
+        operator V() {
+//             cout<<"Wywolanie operatora V()"<<endl;
+            return (*refMap)[ind];
+        }
+
+    };
+    reference operator[](const Index& ind){
+        return reference(ind, mapa);
     }
 
+    class const_reference{
+    public:
+       Index ind;
+        const map<const Index, V>* refMap;
+
+        const_reference(){}
+        const_reference(const Index& ind,const map<const Index, V>& refMap): ind(ind), refMap(&refMap){}
+        const_reference(const reference& ref){
+            ind = ref.ind;
+            refMap = ref.refMap;
+        }
+        const_reference& operator =(const const_reference& ref) {
+            ind = ref.ind;
+            refMap = ref.refMap;
+        }
+
+        operator V() const {
+            return (*refMap).at(ind);
+        }
+
+    };
+    const_reference operator[](const Index& ind) const{
+        return const_reference(ind, mapa);
+    }
+
+    class iterator{
+    public:
+        typename map<Index,V>::iterator it;
+        map<const Index, V>* itMap;
+
+        iterator(){}
+        iterator(const typename map<Index,V>::iterator& it, map<const Index, V>& itMap): it(it), itMap(&itMap){}
+
+        Index key(){
+            return it->first;
+        }
+        V value(){
+            return it->second;
+        }
+        reference operator*(){
+            return reference(it->first, *itMap);
+        }
+        bool operator ==(const iterator& iter){
+            if(it == iter.it  && itMap == iter.itMap){
+                return true;
+            }
+            return false;
+        }
+        bool operator !=(const iterator& iter){
+            if(it == iter.it && itMap == iter.itMap){
+                return false;
+            }
+            return true;
+        }
+        void operator++(){
+            it++;
+        }
+        void operator++(int){
+            it++;
+        }
+
+    };
+
+    iterator begin(){
+        return iterator(mapa.begin(), mapa);
+    }
+    iterator end(){
+        return iterator(mapa.end(), mapa);
+    }
+
+    class const_iterator{
+    public:
+        typename map<Index,V>::const_iterator it;
+        const map<const Index, V>* itMap;
+
+        const_iterator(){}
+        const_iterator(const typename map<Index,V>::const_iterator& it,const map<const Index, V>& itMap): it(it), itMap(&itMap){}
+        const_iterator(const const_iterator& iter): it(iter.it), itMap(iter.itMap){}
+        const_iterator& operator =(const const_iterator& iter){
+            it = iter.it;
+            itMap = iter.itMap;
+        }
+        bool operator ==(const const_iterator& iter){
+            if(it == iter.it  && itMap == iter.itMap){
+                return true;
+            }
+            return false;
+        }
+        bool operator !=(const const_iterator& iter){
+            if(it == iter.it && itMap == iter.itMap){
+                return false;
+            }
+            return true;
+        }
+        Index key(){
+            return it->first;
+        }
+        V value(){
+            return it->second;
+        }
+        const_reference operator*(){
+            return const_reference(it->first, *itMap);
+        }
+        void operator++(){
+            it++;
+        }
+        void operator++(int){
+            it++;
+        }
+
+    };
+
+    const_iterator begin() const{
+        return const_iterator(mapa.begin(), mapa);
+    }
+    const_iterator end() const{
+        return const_iterator(mapa.end(), mapa);
+    }
 
     SparseArray(){}
     ~SparseArray(){
         mapa.clear();
     }
-    map<Index, V> mapa;
+    SparseArray(const SparseArray<V,D>& arr){
+        mapa = arr.mapa;
+    }
+    SparseArray<V,D>& operator =(const SparseArray<V,D>& arr){
+        mapa = arr.mapa;
+        return *this;
+    }
 
+
+    map<const Index, V> mapa;
+
+    void realShow(){
+        typename std::map<Index, V>::iterator it = mapa.begin();
+
+        while (it!=mapa.end()) {
+            cout << it->first << " = " << it->second << endl;
+            ++it;
+        }
+        if(mapa.begin() == mapa.end()){
+            cout<<"Pusta tablica"<<endl;
+        }
+        cout<<endl;
+    };
+    unsigned size() const{
+        unsigned counter = 0;
+        typename std::map<Index, V>::const_iterator it = mapa.begin();
+
+        while (it!=mapa.end()) {
+            if (it->second == V()) {
+                it++;
+                continue;
+            } else {
+                counter++;
+                ++it;
+            }
+        }
+        return counter;
+    }
     void show() {
         V *v = new V();
         bool oneOrMore = false;
