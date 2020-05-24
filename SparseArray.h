@@ -71,9 +71,9 @@ public:
         }
 
 
-        bool operator==(const Index& ind){
+        friend bool operator==(const Index& ind1, const Index& ind2){
             for(unsigned i = 0; i<D; i++){
-                if(indexArray[i] != ind.indexArray[i]){
+                if(ind1[i] != ind2[i]){
                     return false;
                 }
             }
@@ -120,13 +120,16 @@ public:
         Index ind;
         map<const Index, V>* refMap;
 
-        reference(){}
+        reference()= default;
         reference(const Index& ind,map<const Index, V>& refMap): ind(ind), refMap(&refMap){}
         reference(const reference& ref){
             ind = ref.ind;
             refMap = ref.refMap;
         }
         reference& operator =(const reference& ref) {
+            if(this == &ref){
+                return *this;
+            }
             ind = ref.ind;
             refMap = ref.refMap;
         }
@@ -157,13 +160,16 @@ public:
        Index ind;
         const map<const Index, V>* refMap;
 
-        const_reference(){}
+        const_reference()= default;
         const_reference(const Index& ind,const map<const Index, V>& refMap): ind(ind), refMap(&refMap){}
-        const_reference(const reference& ref){
+        const_reference(const const_reference& ref){
             ind = ref.ind;
             refMap = ref.refMap;
         }
         const_reference& operator =(const const_reference& ref) {
+            if(this == &ref){
+                return *this;
+            }
             ind = ref.ind;
             refMap = ref.refMap;
         }
@@ -182,7 +188,7 @@ public:
         typename map<Index,V>::iterator it;
         map<const Index, V>* itMap;
 
-        iterator(){}
+        iterator()= default;
         iterator(const typename map<Index,V>::iterator& it, map<const Index, V>& itMap): it(it), itMap(&itMap){}
 
         Index key(){
@@ -194,23 +200,32 @@ public:
         reference operator*(){
             return reference(it->first, *itMap);
         }
+
         bool operator ==(const iterator& iter){
-            if(it == iter.it  && itMap == iter.itMap){
+            if(it == iter.it){
                 return true;
             }
             return false;
         }
         bool operator !=(const iterator& iter){
-            if(it == iter.it && itMap == iter.itMap){
+            if(it == iter.it){
                 return false;
             }
             return true;
         }
         void operator++(){
-            it++;
+            if(it != (*itMap).end()){
+            ++it;
+            } else{
+                throw runtime_error("Iterator overflow");
+            }
         }
         void operator++(int){
-            it++;
+            if(it != (*itMap).end()){
+                ++it;
+            } else{
+                throw runtime_error("Iterator overflow");
+            }
         }
 
     };
@@ -227,21 +242,24 @@ public:
         typename map<Index,V>::const_iterator it;
         const map<const Index, V>* itMap;
 
-        const_iterator(){}
+        const_iterator()= default;
         const_iterator(const typename map<Index,V>::const_iterator& it,const map<const Index, V>& itMap): it(it), itMap(&itMap){}
         const_iterator(const const_iterator& iter): it(iter.it), itMap(iter.itMap){}
         const_iterator& operator =(const const_iterator& iter){
+            if(this == &iter){
+                return *this;
+            }
             it = iter.it;
             itMap = iter.itMap;
         }
         bool operator ==(const const_iterator& iter){
-            if(it == iter.it  && itMap == iter.itMap){
+            if(it == iter.it){
                 return true;
             }
             return false;
         }
         bool operator !=(const const_iterator& iter){
-            if(it == iter.it && itMap == iter.itMap){
+            if(it == iter.it){
                 return false;
             }
             return true;
@@ -256,12 +274,19 @@ public:
             return const_reference(it->first, *itMap);
         }
         void operator++(){
-            it++;
+            if(it != (*itMap).end()){
+                ++it;
+            } else{
+                throw runtime_error("Iterator overflow");
+            }
         }
         void operator++(int){
-            it++;
+            if(it != (*itMap).end()){
+                ++it;
+            } else{
+                throw runtime_error("Iterator overflow");
+            }
         }
-
     };
 
     const_iterator begin() const{
@@ -271,10 +296,10 @@ public:
         return const_iterator(mapa.end(), mapa);
     }
 
-    SparseArray(){}
-    ~SparseArray(){
-        mapa.clear();
-    }
+    SparseArray()= default;
+//    ~SparseArray(){
+//        mapa.clear();
+//    }
     SparseArray(const SparseArray<V,D>& arr){
         mapa = arr.mapa;
     }
@@ -286,8 +311,8 @@ public:
 
     map<const Index, V> mapa;
 
-    void realShow(){
-        typename std::map<Index, V>::iterator it = mapa.begin();
+    void realShow() const{
+        typename std::map<Index, V>::const_iterator it = mapa.cbegin();
 
         while (it!=mapa.end()) {
             cout << it->first << " = " << it->second << endl;
