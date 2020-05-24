@@ -5,7 +5,7 @@
 #define SPARSE_ARRAY_SPARSEARRAY_H
 #include <iostream>
 #include <map>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdexcept>
 
 using namespace std;
@@ -146,7 +146,9 @@ public:
            return *this;
         }
         operator V() {
-//             cout<<"Wywolanie operatora V()"<<endl;
+            if(!(*refMap).count(ind)){
+                return V();
+            }
             return (*refMap)[ind];
         }
 
@@ -166,6 +168,15 @@ public:
             ind = ref.ind;
             refMap = ref.refMap;
         }
+        const_reference(const reference& ref){
+            ind = ref.ind;
+            refMap = ref.refMap;
+        }
+        const_reference& operator =(const reference& ref) {
+            ind = ref.ind;
+            refMap = ref.refMap;
+        }
+
         const_reference& operator =(const const_reference& ref) {
             if(this == &ref){
                 return *this;
@@ -174,7 +185,11 @@ public:
             refMap = ref.refMap;
         }
 
-        operator V() const {
+        operator V() const{
+
+            if(!(*refMap).count(ind)){
+                return V();
+            }
             return (*refMap).at(ind);
         }
 
@@ -297,9 +312,6 @@ public:
     }
 
     SparseArray()= default;
-//    ~SparseArray(){
-//        mapa.clear();
-//    }
     SparseArray(const SparseArray<V,D>& arr){
         mapa = arr.mapa;
     }
@@ -328,13 +340,8 @@ public:
         typename std::map<Index, V>::const_iterator it = mapa.begin();
 
         while (it!=mapa.end()) {
-            if (it->second == V()) {
                 it++;
-                continue;
-            } else {
                 counter++;
-                ++it;
-            }
         }
         return counter;
     }
